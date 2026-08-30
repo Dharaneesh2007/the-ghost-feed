@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>THE GHOST FEED</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&amp;family=Fira+Sans:wght@300;400;500&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed-variant": "#930010",
+                        "outline": "#929095",
+                        "on-tertiary-container": "#ea2b2f",
+                        "primary-fixed-dim": "#c8c5cb",
+                        "primary": "#c8c5cb",
+                        "background": "#131318",
+                        "surface-dim": "#131318",
+                        "on-secondary-fixed-variant": "#484740",
+                        "inverse-on-surface": "#303036",
+                        "secondary-fixed-dim": "#cac6be",
+                        "on-error": "#690005",
+                        "surface-bright": "#39393f",
+                        "on-surface": "#e4e1e9",
+                        "surface-tint": "#c8c5cb",
+                        "on-primary-fixed": "#1b1b1f",
+                        "tertiary-fixed-dim": "#ffb3ac",
+                        "on-error-container": "#ffdad6",
+                        "tertiary-container": "#220001",
+                        "error": "#ffb4ab",
+                        "inverse-surface": "#e4e1e9",
+                        "on-primary-container": "#7b797e",
+                        "on-primary-fixed-variant": "#47464b",
+                        "secondary-container": "#484740",
+                        "primary-container": "#0b0b0f",
+                        "inverse-primary": "#5f5e63",
+                        "on-background": "#e4e1e9",
+                        "secondary": "#cac6be",
+                        "on-secondary-fixed": "#1c1c16",
+                        "surface-container-high": "#29292f",
+                        "secondary-fixed": "#e6e2d9",
+                        "on-surface-variant": "#c8c5cb",
+                        "on-tertiary": "#680008",
+                        "error-container": "#93000a",
+                        "on-secondary": "#31302b",
+                        "surface": "#131318",
+                        "tertiary": "#ffb3ac",
+                        "surface-variant": "#34343a",
+                        "on-primary": "#303034",
+                        "surface-container-lowest": "#0d0e13",
+                        "on-secondary-container": "#b8b5ad",
+                        "surface-container": "#1f1f25",
+                        "on-tertiary-fixed": "#410003",
+                        "primary-fixed": "#e4e1e7",
+                        "surface-container-highest": "#34343a",
+                        "outline-variant": "#47464b",
+                        "tertiary-fixed": "#ffdad6",
+                        "surface-container-low": "#1b1b21"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "section-gap": "80px",
+                        "col-span-1": "calc(100% / 12)",
+                        "gutter": "24px",
+                        "unit": "4px",
+                        "margin-safe": "40px"
+                    },
+                    "fontFamily": {
+                        "data-sm": ["JetBrains Mono"],
+                        "narrative-sm": ["Fira Sans"],
+                        "narrative-lg": ["Fira Sans"],
+                        "data-md": ["JetBrains Mono"],
+                        "data-lg-mobile": ["JetBrains Mono"],
+                        "narrative-md": ["Fira Sans"],
+                        "data-lg": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "data-sm": ["12px", { "lineHeight": "1.4", "letterSpacing": "0.1em", "fontWeight": "400" }],
+                        "narrative-sm": ["14px", { "lineHeight": "1.5", "letterSpacing": "0.01em", "fontWeight": "300" }],
+                        "narrative-lg": ["22px", { "lineHeight": "1.6", "letterSpacing": "0", "fontWeight": "400" }],
+                        "data-md": ["24px", { "lineHeight": "1.2", "letterSpacing": "0.02em", "fontWeight": "500" }],
+                        "data-lg-mobile": ["32px", { "lineHeight": "1.1", "fontWeight": "700" }],
+                        "narrative-md": ["16px", { "lineHeight": "1.6", "letterSpacing": "0.01em", "fontWeight": "400" }],
+                        "data-lg": ["48px", { "lineHeight": "1.1", "letterSpacing": "-0.05em", "fontWeight": "700" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .scanline-overlay {
+            background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.1));
+            background-size: 100% 4px;
+            pointer-events: none;
+        }
+        .blinking-cursor::after {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 1em;
+            background-color: currentColor;
+            margin-left: 2px;
+            animation: blink 1s step-end infinite;
+            vertical-align: text-bottom;
+        }
+        @keyframes blink { 50% { opacity: 0; } }
+        
+        .status-dot {
+            width: 4px;
+            height: 4px;
+            background-color: #F5F1E8;
+            display: inline-block;
+        }
+        .status-dot.detected {
+            background-color: #FF3B3B;
+            animation: fast-blink 0.2s infinite;
+        }
+        @keyframes fast-blink {
+            0%, 49% { opacity: 1; }
+            50%, 100% { opacity: 0; }
+        }
+        
+        .crosshair-center {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 24px;
+            height: 24px;
+            pointer-events: none;
+            z-index: 100;
+        }
+        .crosshair-center::before, .crosshair-center::after {
+            content: '';
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        .crosshair-center::before { top: 50%; left: 0; width: 100%; height: 1px; transform: translateY(-50%); }
+        .crosshair-center::after { left: 50%; top: 0; width: 1px; height: 100%; transform: translateX(-50%); }
+
+        /* Floating 3D labels support */
+        .threejs-label-bg {
+            background-color: rgba(11, 18, 32, 0.6);
+            border-radius: 4px;
+            padding: 2px 4px;
+        }
+    </style>
+</head>
+<body class="bg-primary-container text-on-surface antialiased overflow-x-hidden">
+<!-- Persistent HUD Overlays -->
+<div class="fixed inset-0 scanline-overlay z-50"></div>
+<div class="crosshair-center"></div>
+<div class="fixed top-margin-safe left-margin-safe z-50 pointer-events-none">
+<span class="font-data-sm text-data-sm text-outline">[ SYS_TIME: <span class="blinking-cursor" id="clock"></span> ]</span>
+</div>
+<!-- Persistent Top-Right Controls -->
+<div class="fixed top-margin-safe right-margin-safe z-50 pointer-events-auto flex items-center gap-6 transition-transform duration-300 ease-in-out" id="top-right-controls">
+<div class="font-data-sm text-data-sm text-outline flex items-center gap-2">
+<span class="status-dot"></span> SECURE_LINK
+    </div>
+<button class="font-data-sm text-data-sm text-outline hover:text-[#F5F1E8] transition-colors">
+        CLINICAL HUM: ON
+    </button>
+<button class="font-data-sm text-data-sm text-outline hover:text-[#F5F1E8] transition-colors border border-outline-variant px-3 py-1 hover:border-[#F5F1E8]" onclick="togglePanel()">
+        ALGORITHMIC DOSSIER
+    </button>
+</div>
+<!-- Fixed Micro-HUD (Bottom Right) -->
+<div class="fixed bottom-24 right-margin-safe z-50 pointer-events-none flex flex-col items-end gap-2">
+<div class="font-data-sm text-data-sm text-[#8BE9FD] bg-[#12161F] px-2 py-1 border border-[#2A3B5C]">
+        VELOCITY: 1.2x
+    </div>
+<div class="font-data-sm text-data-sm text-outline animate-pulse">
+        [ SCROLL TO DRIFT ]
+    </div>
+</div>
+<!-- Top Navigation Anchor -->
+<header class="fixed top-0 left-0 w-full z-40 px-margin-safe py-8 pointer-events-none text-center">
+<div class="font-data-md text-data-md font-bold text-outline tracking-tighter">THE GHOST FEED</div>
+</header>
+<!-- Main Scroll Container -->
+<main class="relative z-10 snap-y snap-mandatory h-screen overflow-y-scroll">
+<!-- SECTION 1: HERO -->
+<section class="h-screen w-full snap-start flex flex-col items-center justify-center relative bg-primary-container">
+<div class="max-w-4xl px-margin-safe text-center space-y-12">
+<h1 class="font-narrative-lg text-narrative-lg md:text-[40px] text-on-surface leading-tight">
+                    You don't scroll the feed. It scrolls you.
+                </h1>
+<button class="mt-12 px-8 py-4 border border-[#F5F1E8] text-[#F5F1E8] hover:bg-[#F5F1E8] hover:text-[#0B0B0F] font-data-sm text-data-sm uppercase tracking-widest cursor-pointer transition-none" onclick="document.getElementById('stage').scrollIntoView({behavior: 'smooth'})">
+                    ENTER_SYSTEM
+                </button>
+</div>
+<div class="absolute bottom-margin-safe left-1/2 -translate-x-1/2">
+<span class="material-symbols-outlined text-outline animate-bounce">arrow_downward</span>
+</div>
+</section>
+<!-- SECTION 2: MAIN STAGE (3D SCENE) -->
+<section class="h-screen w-full snap-start relative bg-background border-t border-b border-[#24242A]" id="stage">
+<!-- The Scene -->
+<div class="absolute inset-0 w-full h-full">
+
+</div>
+<!-- UI Overlay Container -->
+<div class="absolute inset-margin-safe pointer-events-none flex flex-col justify-between pt-16">
+<!-- Top HUD -->
+<div class="flex justify-between items-start">
+<div class="font-data-sm text-data-sm text-[#8BE9FD] bg-[#12161F] px-2 py-1 border border-[#2A3B5C]">
+                        [ GHOST_LAG: 0.4s ]
+                    </div>
+<div class="font-data-sm text-data-sm text-outline bg-primary-container/80 px-2 py-1 border border-[#24242A]">
+                        3D_SCENE_MOUNT
+                    </div>
+<div class="font-data-sm text-data-sm text-[#FF3B3B] bg-[#FF3B3B]/15 px-2 py-1 border border-[#FF3B3B]">
+                        [ OUTRAGE_WEIGHT: x1.8 ]
+                    </div>
+</div>
+<!-- Bottom HUD -->
+<div class="flex justify-between items-end pb-8">
+<div class="font-data-sm text-data-sm text-[#8BE9FD] bg-[#12161F] px-2 py-1 border border-[#2A3B5C]">
+                        [ BIAS_INDEX: 0.92 ]
+                    </div>
+<!-- Legacy Toggle Button (Replaced by top-right dossier but kept for flow) -->
+<button class="pointer-events-auto px-4 py-2 border border-[#24242A] text-outline hover:text-[#F5F1E8] hover:border-[#F5F1E8] bg-primary-container/80 font-data-sm text-data-sm uppercase transition-none flex items-center gap-2 hidden" onclick="togglePanel()">
+<span class="status-dot" id="signal-dot"></span> SIGNAL_DECODE
+                    </button>
+<div class="font-data-sm text-data-sm text-[#FF3B3B] bg-[#FF3B3B]/15 px-2 py-1 border border-[#FF3B3B]">
+                        [ URGENCY_INJECTED: TRUE ]
+                    </div>
+</div>
+</div>
+<!-- Side Panel (Collapsible) -->
+<aside class="absolute top-0 right-0 h-full w-80 bg-surface-container-low border-l border-outline-variant transform translate-x-full transition-transform duration-300 ease-in-out z-30 pt-24 px-6 pb-8 flex flex-col" id="decode-panel">
+<div class="mb-8 border-b border-outline-variant pb-4 flex justify-between items-center shrink-0">
+<h2 class="font-data-md text-data-md text-on-surface">ALGORITHMIC_DOSSIER</h2>
+<button class="text-outline hover:text-on-surface" onclick="togglePanel()">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="space-y-6 flex-1 overflow-y-auto pr-2 custom-scrollbar">
+<div class="border-b border-outline-variant pb-4">
+<h3 class="font-data-sm text-data-sm text-[#FF3B3B] mb-2">[ OUTRAGE_WEIGHT ]</h3>
+<p class="font-narrative-sm text-narrative-sm text-on-surface">The multiplier applied to content that triggers cortisol spikes. Higher numbers indicate intentional manipulation for engagement retention.</p>
+</div>
+<div class="border-b border-outline-variant pb-4">
+<h3 class="font-data-sm text-data-sm text-[#8BE9FD] mb-2">[ BIAS_INDEX ]</h3>
+<p class="font-narrative-sm text-narrative-sm text-on-surface">Calculation of algorithmic slant based on historical interaction. 1.0 represents complete echo-chamber enclosure.</p>
+</div>
+<div class="border-b border-outline-variant pb-4">
+<h3 class="font-data-sm text-data-sm text-[#FF3B3B] mb-2">[ URGENCY_INJECTED ]</h3>
+<p class="font-narrative-sm text-narrative-sm text-on-surface">Boolean indicator if artificial scarcity or immediate threat modeling has been applied to the content payload.</p>
+</div>
+<!-- Section 04: Manipulation Triggers (Scroll Container) -->
+<div class="border-b border-outline-variant pb-4">
+<h3 class="font-data-sm text-data-sm text-[#8BE9FD] mb-2">[ SEC_04: MANIPULATION_TRIGGERS ]</h3>
+<div class="h-32 overflow-y-auto pr-2 space-y-2 border border-outline-variant/30 p-2 bg-[#12161F]/30">
+<div class="font-data-sm text-data-sm text-on-surface-variant">- MICRO_TARGETING: ACTIVE</div>
+<div class="font-data-sm text-data-sm text-on-surface-variant">- SENTIMENT_DAMPENING: DETECTED</div>
+<div class="font-data-sm text-data-sm text-on-surface-variant">- CORTISOL_SPIKE: IMMINENT</div>
+<div class="font-data-sm text-data-sm text-[#FF3B3B]">- THRESHOLD_BREACH: INFLUENCE &gt; 70%</div>
+<div class="font-data-sm text-data-sm text-on-surface-variant">- ECHO_CHAMBER_SEAL: INTACT</div>
+</div>
+</div>
+<div class="pt-4">
+<div class="font-data-sm text-data-sm text-outline flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]">terminal</span>
+                            AWAITING_FURTHER_INPUT
+                        </div>
+</div>
+</div>
+</aside>
+</section>
+<!-- SECTION 3: CLOSING -->
+<section class="h-screen w-full snap-start flex items-center justify-center bg-primary-container relative">
+<div class="max-w-3xl px-margin-safe text-center">
+<p class="font-narrative-lg text-narrative-lg md:text-[32px] text-outline leading-relaxed">
+                    The feed remembers what you tried to look away from.
+                </p>
+</div>
+</section>
+<!-- Footer Component -->
+<footer class="fixed bottom-0 left-0 w-full z-40 flex justify-between items-center px-margin-safe py-4 bg-background/80 border-t border-outline-variant pointer-events-none">
+<div class="font-data-sm text-data-sm text-outline">
+                [ SYSTEM_ID: GHOST_FEED_ALPHA ]
+            </div>
+<div class="flex gap-6 pointer-events-auto">
+<a class="font-data-sm text-data-sm text-outline hover:text-on-tertiary-container transition-none" href="#">DECRYPT_LOGS</a>
+<a class="font-data-sm text-data-sm text-outline hover:text-on-tertiary-container transition-none" href="#">TERMINATE_SESSION</a>
+</div>
+</footer>
+</main>
+<style>
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: rgba(0,0,0,0.1);
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #47464b;
+        border-radius: 4px;
+    }
+</style>
+<script>
+        // Clock Update
+        function updateClock() {
+            const now = new Date();
+            const timeStr = now.toISOString().split('T')[1].slice(0, 12);
+            document.getElementById('clock').innerText = timeStr;
+        }
+        setInterval(updateClock, 100);
+        updateClock();
+
+        // Side Panel Toggle Logic
+        function togglePanel() {
+            const panel = document.getElementById('decode-panel');
+            const topControls = document.getElementById('top-right-controls');
+            
+            if (panel.classList.contains('translate-x-full')) {
+                panel.classList.remove('translate-x-full');
+                panel.classList.add('translate-x-0');
+                // Shift top controls left by 80 (320px) + margin
+                topControls.style.transform = 'translateX(-320px)';
+            } else {
+                panel.classList.remove('translate-x-0');
+                panel.classList.add('translate-x-full');
+                topControls.style.transform = 'translateX(0)';
+            }
+        }
+    </script>
+</body></html>
